@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:coupa="http://www.mulesoft.org/schema/mule/coupa" xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/coupa http://www.mulesoft.org/schema/mule/coupa/current/mule-coupa.xsd">
+
+    <configuration-properties file="automation-credentials.properties"/>
+
+    <coupa:config name="Coupa_Config" doc:name="Coupa Config" doc:id="6eb9cd1c-a33f-4b08-8494-0ac7e3e6dd8d" >
+        <coupa:coupa-connection coupaInstance="${coupa.instance}" apiKey="${coupa.apikey}" />
+    </coupa:config>
+
+    <flow name="get-object" doc:id="881e9886-3d12-4117-a665-ad710b58ebd9" >
+        <coupa:get-object
+            objectType="#[vars.objectType]"
+            doc:name="Get"
+            doc:id="96a50f29-adec-464c-9239-1cbb9171f68f"
+            config-ref="Coupa_Config"
+            id="#[payload]"/>
+    </flow>
+
+    <flow name="get-supplier-subpath">
+        <coupa:query-suppliers-remit-to-address
+            config-ref="Coupa_Config"
+            supplierId="#[vars.id]"/>
+    </flow>
+
+    <flow name="query-object" doc:id="881e9886-3d12-4117-a665-ad710b58ebd9" >
+        <coupa:query-objects
+            objectType="#[vars.objectType]"
+            doc:name="Get"
+            doc:id="96a50f29-adec-464c-9239-1cbb9171f68f"
+            config-ref="Coupa_Config"
+            query="#[vars.query]"/>
+    </flow>
+
+    <flow name="query-object-params" doc:id="881e9886-3d12-4117-a665-ad710b58ebd9" >
+        <coupa:query-objects
+            objectType="#[vars.objectType]"
+            doc:name="Get"
+            doc:id="96a50f29-adec-464c-9239-1cbb9171f68f"
+            config-ref="Coupa_Config"
+            params="#[vars.params]"/>
+    </flow>
+
+    <flow name="create-object" doc:id="881e9886-3d12-4117-a665-ad710b58ebd9" >
+        <coupa:create-object
+            objectType="#[vars.objectType]"
+            doc:name="Create"
+            doc:id="96a50f29-adec-464c-9239-1cbb9171f68f"
+            config-ref="Coupa_Config"/>
+    </flow>
+
+    <flow name="update-object" doc:id="881e9886-3d12-4117-a665-ad710b58ebd9" >
+        <coupa:update-object
+            objectType="#[vars.objectType]"
+            doc:name="Create"
+            doc:id="96a50f29-adec-464c-9239-1cbb9171f68f"
+            config-ref="Coupa_Config"
+            id="#[vars.id]"/>
+    </flow>
+
+    <flow name="export-object" doc:id="881e9886-3d12-4117-a665-ad710b58ebd9" >
+        <coupa:mark-exported-object
+            objectType="#[vars.objectType]"
+            doc:name="Create"
+            doc:id="96a50f29-adec-464c-9239-1cbb9171f68f"
+            config-ref="Coupa_Config"
+            id="#[vars.id]"
+            actionValue="#[vars.action]"/>
+    </flow>
+
+
+
+
+</mule>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:coupa="http://www.mulesoft.org/schema/mule/coupa" xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/coupa http://www.mulesoft.org/schema/mule/coupa/current/mule-coupa.xsd">
+
+    <configuration-properties file="automation-credentials.properties"/>
+
+    <coupa:config name="Coupa_Config" doc:name="Coupa Config" doc:id="6eb9cd1c-a33f-4b08-8494-0ac7e3e6dd8d" >
+        <coupa:coupa-connection coupaInstance="${coupa.instance}" apiKey="${coupa.apikey}" />
+    </coupa:config>
+
+    <flow name="supplier_query" doc:id="53cea373-e560-401a-875b-5a6eed8f6225" >
+        <coupa:query-objects objectType="supplier" doc:name="Query" doc:id="78b30dde-89bf-4799-bd48-1fcb13279f9c" config-ref="Coupa_Config" query="id[lt]=120&amp;id[gt]=20"/>
+    </flow>
+
+    <flow name="remit_create" doc:id="6e1e7416-1b30-4acc-af39-4932778bf70e" >
+        <coupa:creste-suppliers-remit-to-address doc:name="Suppliers | Create Remit-To Address" doc:id="69d9e0e3-0a10-4fba-b337-7b23950f9d6f" config-ref="Coupa_Config" supplierId="#[vars.supplierId]"/>
+    </flow>
+
+    <flow name="remit_query" doc:id="e472afac-194b-4d82-9ddc-0d728baa5252" >
+        <coupa:query-suppliers-remit-to-address doc:name="Suppliers | Query Remit-To Address" doc:id="8869feba-270a-4c61-bc91-e810ecb22523" config-ref="Coupa_Config" supplierId="#[vars.supplierId]"/>
+    </flow>
+
+    <flow name="remit_get" doc:id="5c058445-8e19-48a8-b68d-6a34a3bebea7" >
+        <coupa:get-suppliers-remit-to-address doc:name="Suppliers | Get Remit-To Address" doc:id="b1e968d8-7d50-4061-a4d7-f8bf6b270d79" config-ref="Coupa_Config" supplierId="#[vars.supplierId]" remitToAddressId="#[vars.remitToId]"/>
+    </flow>
+
+</mule>

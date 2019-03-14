@@ -1,0 +1,54 @@
+= Coupa Connector Release Notes
+
+:keywords: coupa
+
+This connector facilitates the integration with the Coupa’s API web services, both for getting and sending data via Mule flows
+
+link:/doc/user-manual.adoc[Coupa Connector User Guide]
+
+== 2.0.0 - Oct 29, 2018
+
+This is the first Mule 4 version of the connector and its not compatible with the previous versions
+
+=== Version 2.0.0 Compatibility
+
+[%header%autowidth]
+|===
+|Software |Version
+|Mule Runtime | 4.1.x
+|Coupa API |19+
+|===
+
+=== Features
+
+- Initial Version.
+
+- Implemented limited functionality for:
+
+	-- Addresses API
+	-- Approvals API
+	-- Expenses API
+	-- Inventory Transactions API
+	-- Invoices API
+	-- Lookup Values API
+	-- Purchase Orders API
+	-- Requisitions API
+	-- Suppliers API
+	-- Users API
+	-- Coupa Special actions
+	-- Coupa Querying Options
+	-- Streaming of paginated results using the offset logic
+
+=== 2.0.0 Fixed in this Release
+
+- This version doesn’t have bugs fixed.
+
+=== 2.0.0 Known Issues
+
+- This version doesn’t have known issues.
+
+=== Support Resources
+
+* Learn how connectors have changed in Mule 4.1 link:https://docs.mulesoft.com/mule-runtime/4.1/intro-connectors[Introduction to Mule 4: Connectors].
+* Access the link:http://forum.mulesoft.org/mulesoft[MuleSoft Forum] to post questions and get help from Mule’s broad community of users.
+* To access MuleSoft’s expert support team, link:http://www.mulesoft.com/mule-esb-subscription[subscribe] and log in to MuleSoft’s link:http://www.mulesoft.com/support-login[Customer Portal].

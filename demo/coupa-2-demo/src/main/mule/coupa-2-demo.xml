@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:coupa="http://www.mulesoft.org/schema/mule/coupa" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/coupa http://www.mulesoft.org/schema/mule/coupa/current/mule-coupa.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="cb1b4615-79bf-4cd6-9643-c7711d766fba" file="configuration.yaml" />
+	<coupa:config name="Coupa_Config" doc:name="Coupa Config" doc:id="c5e1797e-7bf4-4887-a11a-e40955da59a2" >
+		<coupa:coupa-connection coupaInstance="${coupa.instance}" apiKey="${coupa.apikey}" />
+	</coupa:config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="3ede1ec4-591c-4ba6-a5a4-9cb4604cb9e9" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="coupa-connector-get-address-flow" doc:id="bea9da9b-a25e-4def-8a81-66f3f9ad5c8b" >
+		<http:listener doc:name="Listener" doc:id="902a8eae-fdc3-4583-a9e5-01b3105c401e" config-ref="HTTP_Listener_config" path="/getAddress"/>
+		<set-variable value="#[attributes.queryParams.id]" doc:name="Set addressId" doc:id="348cfcb8-2151-43eb-bebc-569ef9e01652" variableName="addressId"/>
+		<coupa:get-object doc:name="Get" doc:id="ab6b2b48-8d51-47a6-983a-42f3a2d188ab" config-ref="Coupa_Config" objectType="address" id="#[vars.addressId]"/>
+		<error-handler>
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ba8182be-9da7-449e-9abc-1644a0da9f35" type="ANY">
+				<set-payload value='#["&lt;p&gt;
+Cannot get Address with id " ++ vars.addressId ++ ":&lt;br&gt;" ++
+error.cause.message ++
+"&lt;/p&gt;"]' doc:name="Set Payload" doc:id="deb56af0-f2d1-49fe-85fb-6c1d4d4b0e8c" mimeType="text/html"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="coupa-connector-update-user-flow" doc:id="4e2b2845-e646-459a-b42f-43bac489481b" >
+		<http:listener doc:name="Listener" doc:id="c987b43b-eb7b-4882-a883-deea8b9e578a" config-ref="HTTP_Listener_config" path="/updateUser"/>
+		<set-variable value='#[attributes.queryParams.id]' doc:name="Set userId" doc:id="664799bf-abd8-4887-93be-a2550e2587f6" variableName="userId" />
+		<validation:is-not-null doc:name="Id is not null" doc:id="f4ac7825-6e42-4552-837b-b10c3c54a36e" value="#[vars.userId]" message='"id" cannot be empty!'/>
+		<validation:is-not-blank-string doc:name="Id is not blank string" doc:id="dfca3d90-c2fe-48f9-a923-20ebb70dceaa" message='"id" cannot be empty!' value="#[vars.userId]"/>
+		<set-variable value='#[attributes.queryParams.lastname default ""]' doc:name="Set newLastname" doc:id="1d3e54df-b7ad-4efb-b37c-43470f568c58" variableName="newLastname" />
+		<validation:is-not-null doc:name="newLastname is not null" doc:id="79884444-8636-4208-a44d-aafc48a9ae49" value="#[vars.newLastname]" message='"lastname" cannot be empty!'/>
+		<validation:is-not-blank-string doc:name="Lastname is not blank string" doc:id="48615f5f-bb2c-4a29-8f0a-edd1aa95fc67" value="#[vars.newLastname]" message='"lastname" cannot be empty!'/>
+		<ee:transform doc:name="Transform Message" doc:id="117405e7-8048-4aca-bf78-91fa1d306e7c">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	lastname: vars.newLastname default ""
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<coupa:update-object objectType="user" doc:name="Update" doc:id="74a13f5e-2460-4d9a-a7f0-e548f351eaac" config-ref="Coupa_Config" id="#[vars.userId]" />
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="14ccdf21-1def-4c57-bcbb-6233ee988cab" type="ANY">
+				<choice doc:name="Choice" doc:id="dd374c54-5edf-4f08-83e9-a8c6b2ee66af" >
+					<when expression="#[vars.userId == null or vars.newLastname == null]" >
+						<set-payload value='#["&lt;p&gt;" ++
+error.cause.message ++
+"&lt;/p&gt;"]' doc:name="Set HTML Response" doc:id="dbed9af3-7913-43ee-b14d-3f4246828c01" mimeType="text/html" />
+					</when>
+					<otherwise >
+						<set-payload value='#["&lt;p&gt;Cannot updating User with id " ++  
+vars.userId ++ 
+" and new lastname " ++ 
+vars.newLastname ++ 
+":&lt;br&gt;" ++
+error.cause.message ++
+"&lt;/p&gt;"]' doc:name="Set HTML Response" doc:id="8625e8c2-ca9e-4247-abc6-81c3f355681f" mimeType="text/html" />
+					</otherwise>
+				</choice>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="coupa-connector-create-expense-report-flow" doc:id="2e73d59b-6835-4dd4-885a-fa86239a265e" >
+		<http:listener doc:name="Listener" doc:id="5fcc1333-4323-4860-ade4-f99f6a12508a" config-ref="HTTP_Listener_config" path="/createExpenseReport"/>
+		<set-variable value='#[attributes.queryParams.title default ""]' doc:name="Set title" doc:id="ba9f50cd-1ad5-46cb-ad92-4c4088c2753f" variableName="title"/>
+		<validation:is-not-blank-string doc:name="Title is not blank string" doc:id="bf73ea6c-093d-4de5-aa51-46b4e41db638" value="#[vars.title]" message='"title" cannot be blank!'/>
+		<ee:transform doc:name="Transform Message" doc:id="b766d197-f392-4e5c-84a5-b8e2ed7655b4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	title: vars.title
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<coupa:create-object objectType="expense-report" doc:name="Create" doc:id="8e3af964-c030-4264-80bb-2c9cc3c33e05" config-ref="Coupa_Config"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="16f76b3d-7ac1-47b6-8df6-17443b969157" >
+				<choice doc:name="Choice" doc:id="23d18f0d-02ce-4a65-9abc-2d705c8ed05e" >
+					<when expression="#[isEmpty(vars.title)]" >
+						<set-payload value='#["&lt;p&gt;" ++
+error.cause.message ++
+"&lt;/p&gt;"]' doc:name="Set HTML Response" doc:id="3694054c-68b3-46a8-974f-93a16e98a48f" mimeType="text/html" />
+					</when>
+					<otherwise >
+						<set-payload value='#["&lt;p&gt;Cannot create Expense Report with title " ++  
+title ++ 
+":&lt;br&gt;" ++
+error.cause.message ++
+"&lt;/p&gt;"]' doc:name="Set HTML Response" doc:id="97e0724b-d983-4fe0-a7c2-a44ffe65aabd" mimeType="text/html" />
+					</otherwise>
+				</choice>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="coupa-connector-create-expense-report-and-mark-exported-flow" doc:id="96343850-e2cc-4ddd-b529-95c818bad26b" >
+		<http:listener doc:name="Listener" doc:id="e476779f-9ab1-4f00-a38a-6eea7c3a220c" config-ref="HTTP_Listener_config" path="/createExpenseReportAndMarkExported"/>
+		<set-variable value='#[attributes.queryParams.title default ""]' doc:name="Set title" doc:id="b12300b1-a264-435a-9b65-72f7060511f7" variableName="title"/>
+		<validation:is-not-blank-string doc:name="Title is not blank string" doc:id="54ad80b5-473a-4a91-8d5a-eac27e915dd4" value="#[vars.title]"/>
+		<ee:transform doc:name="Transform Message" doc:id="a47c7752-a804-470c-a492-721c3100e01e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	title: vars.title
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<coupa:create-object objectType="expense-report" doc:name="Create" doc:id="60712630-6761-4d0e-8d7b-d241ad439c95" config-ref="Coupa_Config"/>
+		<coupa:mark-exported-object objectType="expense-report" actionValue="true" doc:name="Mark exported / not exported" doc:id="efc16c1f-c4e5-4971-9cac-8d017d59b05f" config-ref="Coupa_Config" id="#[payload.id]"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="030e0140-8e2a-425f-ac98-f7b3dd021ccf" >
+				<choice doc:name="Choice" doc:id="71a4853d-29b4-43ce-80fe-d14f036860ca" >
+					<when expression="#[isEmpty(vars.title)]" >
+						<set-payload value='#["&lt;p&gt;" ++
+error.cause.message ++
+"&lt;/p&gt;"]' doc:name="Set HTML Response" doc:id="52db8f04-6ceb-49dc-87e0-df67fef5901b" mimeType="text/html" />
+					</when>
+					<otherwise >
+						<set-payload value='#["&lt;p&gt;Cannot create Expense Report with title " ++  
+title ++ 
+":&lt;br&gt;" ++
+error.cause.message ++
+"&lt;/p&gt;"]' doc:name="Set HTML Response" doc:id="43916f73-1097-4e67-89de-9379f80d95ba" mimeType="text/html" />
+					</otherwise>
+				</choice>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="coupa-connector-get-rejected-approvals-flow" doc:id="44a9fc3c-5729-4b51-81ab-acc604fbbdf5" >
+		<http:listener doc:name="Listener" doc:id="e5e32ab1-3ebe-416e-b74d-a2f17efe4d18" config-ref="HTTP_Listener_config" path="/getRejectedApprovals"/>
+		<coupa:query-objects objectType="approval" doc:name="Query" doc:id="a1a92d84-5474-4e8c-9579-78fae55527f3" config-ref="Coupa_Config" query="status=rejected"/>
+		<ee:transform doc:name="Transform Message" doc:id="6f038e0f-edac-43c2-9d95-f6b817274778" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+	</ee:message></ee:transform>
+	<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="eb1f6c08-ac0e-42af-8918-84a2bcabec34" >
+				<set-payload value='#["&lt;p&gt;Cannot create fetch rejected Approvals:&lt;br&gt; " ++  
+error.cause.message ++
+"&lt;/p&gt;"]' doc:name="Set HTML Response" doc:id="0f6fece1-e894-4ccd-ab09-103899df99d7" mimeType="text/html" />
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>

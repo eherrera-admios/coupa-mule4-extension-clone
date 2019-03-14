@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:coupa="http://www.mulesoft.org/schema/mule/coupa" xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/coupa http://www.mulesoft.org/schema/mule/coupa/current/mule-coupa.xsd">
+
+    <configuration-properties file="automation-credentials.properties"/>
+
+    <coupa:config name="coupaValidCredentials" doc:name="Coupa Config" doc:id="6eb9cd1c-a33f-4b08-8494-0ac7e3e6dd8d" >
+        <coupa:coupa-connection coupaInstance="${coupa.instance}" apiKey="${coupa.apikey}" />
+    </coupa:config>
+
+    <coupa:config name="coupaConfigInvalidCredentials">
+        <coupa:coupa-connection coupaInstance="asdfasdfasdf" apiKey="123" />
+    </coupa:config>
+
+    <coupa:config name="coupaConfigInvalidInstance">
+        <coupa:coupa-connection coupaInstance="asdfasdfasdf" apiKey="${coupa.apikey}" />
+    </coupa:config>
+
+    <coupa:config name="coupaConfigInvalidApiKey">
+        <coupa:coupa-connection coupaInstance="${coupa.instance}" apiKey="asdfasdfasfdasdf" />
+    </coupa:config>
+</mule>

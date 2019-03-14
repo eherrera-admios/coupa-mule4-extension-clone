@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:coupa="http://www.mulesoft.org/schema/mule/coupa" xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/coupa http://www.mulesoft.org/schema/mule/coupa/current/mule-coupa.xsd">
+
+    <configuration-properties file="automation-credentials.properties"/>
+
+    <coupa:config name="Coupa_Config" doc:name="Coupa Config" doc:id="6eb9cd1c-a33f-4b08-8494-0ac7e3e6dd8d" >
+        <coupa:coupa-connection coupaInstance="${coupa.instance}" apiKey="${coupa.apikey}" />
+    </coupa:config>
+
+    <flow name="approve" doc:id="18380c09-4113-46cf-b26b-5997d5bc3629" >
+        <coupa:approvals action="approve" doc:name="Approvals" doc:id="2d109bd8-b8c7-480c-8dfa-284ac2558d1f" config-ref="Coupa_Config" id="#[payload]"/>
+    </flow>
+
+    <flow name="it_void" doc:id="d18dfd3f-d209-41ee-b363-fbb8b491f321" >
+        <coupa:query-objects objectType="inventory-transaction" doc:name="Query" doc:id="74c7898a-c6ad-4b14-a7ce-360b76e3ebeb" config-ref="Coupa_Config" query="status=created&amp;order-line[status]=received&amp;id[lt]=250">
+            <coupa:params />
+        </coupa:query-objects>
+        <coupa:inventory-transactions doc:name="Inventory Transactions | Void" doc:id="f0066677-c91e-43b4-a91a-930a76577314" config-ref="Coupa_Config" id="#[payload[0].id]"/>
+    </flow>
+
+    <flow name="invoice_void" doc:id="acfaa28c-fd47-44ba-ad3b-e73bcf6d5062" >
+        <coupa:query-objects objectType="invoice" doc:name="Query" doc:id="84a466bf-f860-42aa-9b6c-030f1d53d00b" config-ref="Coupa_Config" query="status=approved&amp;id[lt]=250"/>
+        <coupa:void-invoice doc:name="Invoices | Void" doc:id="1be743f6-9177-47ab-ae19-9234c2f6c933" config-ref="Coupa_Config" id="#[payload[0].id]"/>
+    </flow>
+
+    <flow name="po_close" doc:id="907c4e1e-8d93-4af1-976b-5f380dc7f8dd" >
+        <coupa:query-objects objectType="purchase-order" doc:name="Query" doc:id="082d4819-90ec-46a8-ae41-e9caac3d37d7" config-ref="Coupa_Config" query="status=issued&amp;id[lt]=250"/>
+        <coupa:purchase-orders action="close" doc:name="Purchase Orders" doc:id="06a7ccc5-7fe4-4df3-9e3c-86f84d5a58a0" config-ref="Coupa_Config" id="#[payload[0].id]"/>
+    </flow>
+
+    <flow name="requisition_draft" doc:id="6d52d97b-1f0d-4f17-ada1-c5f706e280cd" >
+        <coupa:requisitions action="create_as_cart" doc:name="Requisitions" doc:id="602bdc40-2a8b-4630-8aa0-c4df854fd561" config-ref="Coupa_Config"/>
+    </flow>
+
+</mule>

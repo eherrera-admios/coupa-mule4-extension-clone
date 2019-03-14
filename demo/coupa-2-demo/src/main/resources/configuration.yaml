@@ -1,0 +1,3 @@
+coupa:
+  instance: "https://mulesoft.example.com"
+  apikey: "YOUR_API_KEY" 

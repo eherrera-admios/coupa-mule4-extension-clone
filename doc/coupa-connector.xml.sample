@@ -1,0 +1,6 @@
+<!-- BEGIN_INCLUDE(coupa:greet) -->
+    <coupa:greet config-ref="" friend="#[map-payload:friend]" />
+<!-- END_INCLUDE(coupa:greet) -->
+<!-- BEGIN_INCLUDE(coupa:add-entity) -->
+    <coupa:add-entity config-ref="" key="id1"/>
+<!-- END_INCLUDE(coupa:add-entity) -->
